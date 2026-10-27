@@ -166,10 +166,21 @@ function choose(idx, list) {
 function results() {
   root.replaceChildren();
   const h = el("h2", { tabIndex: -1 }, "Résultats");
+  const replay = el("button", { type: "button", className: "next" }, "Rejouer");
+  replay.addEventListener("click", restart);
   root.append(h, el("p", { className: "big" }, `${score} / ${questions.length}`),
-    el("p", {}, score === questions.length ? "Parfait, mission accomplie!" : score >= 3 ? "Bravo, belle trajectoire!" : "Décollage réussi, continuez à explorer!"));
+    el("p", {}, score === questions.length ? "Parfait, mission accomplie!" : score >= 3 ? "Bravo, belle trajectoire!" : "Décollage réussi, continuez à explorer!"),
+    replay);
   h.focus();
 }
+
+function restart() {
+  i = 0;
+  score = 0;
+  answered = false;
+  render();
+}
+
 render();
 </script>
 </body>
