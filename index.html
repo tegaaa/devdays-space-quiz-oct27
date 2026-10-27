@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz : exploration spatiale</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff; --fg: #111827; --card: #f3f4f6; --border: #374151;
+  --accent: #1d4ed8; --accent-fg: #ffffff;
+  --ok: #065f46; --ok-bg: #d1fae5; --ko: #991b1b; --ko-bg: #fee2e2;
+  --focus: #b45309;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1020; --fg: #f9fafb; --card: #1a2238; --border: #cbd5e1;
+    --accent: #60a5fa; --accent-fg: #0b1020;
+    --ok: #6ee7b7; --ok-bg: #064e3b; --ko: #fca5a5; --ko-bg: #7f1d1d;
+    --focus: #fbbf24;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 20px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh; display: flex; justify-content: center; padding: 24px;
+}
+main { width: 100%; max-width: 860px; }
+h1 { font-size: 1.6rem; margin: 0 0 16px; }
+h2 { font-size: 1.4rem; margin: 16px 0; line-height: 1.3; }
+.card { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 24px; }
+.top { display: flex; justify-content: space-between; gap: 16px; font-weight: 600; }
+progress { width: 100%; height: 14px; margin: 8px 0 0; accent-color: var(--accent); }
+ul { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 12px; }
+button {
+  font: inherit; color: inherit; cursor: pointer; text-align: left; width: 100%;
+  background: var(--bg); border: 2px solid var(--border); border-radius: 8px; padding: 12px 16px;
+  transition: background .2s;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { cursor: default; }
+button:focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+.next { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); width: auto; font-weight: 700; text-align: center; }
+.correct { background: var(--ok-bg); border-color: var(--ok); border-width: 4px; color: var(--fg); }
+.wrong { background: var(--ko-bg); border-color: var(--ko); border-style: dashed; border-width: 4px; color: var(--fg); }
+.badge { font-weight: 700; }
+#feedback { min-height: 1.5em; font-weight: 700; }
+.big { font-size: 2.4rem; font-weight: 700; }
+/* Panneau de contrôle de mission */
+#quiz {
+  --panel: #e2e8f0; --screen: #f8fafc; --glow: #0e7490; --label: #0f172a;
+  background: var(--panel);
+  border: 3px solid var(--glow);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 4px var(--panel), inset 0 0 0 6px var(--border), 0 0 18px color-mix(in srgb, var(--glow) 35%, transparent);
+  position: relative;
+  padding-top: 64px;
+}
+#quiz::before {
+  content: "● CONTRÔLE DE MISSION — LIAISON ACTIVE";
+  position: absolute; top: 0; left: 0; right: 0;
+  background: var(--label); color: #67e8f9;
+  font: 700 .7rem/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: .12em; padding: 10px 16px; border-radius: 3px 3px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#quiz .top {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  text-transform: uppercase; letter-spacing: .06em; font-size: .85rem;
+}
+#quiz .top span {
+  background: var(--label); color: #67e8f9; border-radius: 4px; padding: 4px 12px;
+}
+#quiz h2 {
+  background: var(--screen); border: 2px solid var(--border); border-left: 8px solid var(--glow);
+  border-radius: 4px; padding: 14px 18px;
+}
+#quiz progress { height: 18px; border-radius: 2px; }
+#quiz button:not(.next) {
+  background: var(--screen); border-radius: 4px; font-weight: 600;
+  box-shadow: 0 4px 0 var(--border);
+}
+#quiz button:not(.next):hover:not(:disabled) { border-color: var(--glow); box-shadow: 0 4px 0 var(--glow); }
+#quiz button:not(.next):active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--glow); }
+#quiz .next {
+  background: var(--label); color: #67e8f9; border-color: #67e8f9; border-radius: 4px;
+  text-transform: uppercase; letter-spacing: .08em; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+#quiz .correct, #quiz .wrong { color: var(--fg); }
+#quiz #feedback { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+@media (prefers-color-scheme: dark) {
+  #quiz {
+    --panel: #111a2e; --screen: #050914; --glow: #22d3ee; --label: #000000;
+    box-shadow: inset 0 0 0 4px var(--panel), inset 0 0 0 6px var(--border), 0 0 24px color-mix(in srgb, var(--glow) 40%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>🚀 Quiz : exploration spatiale</h1>
+  <section class="card" id="quiz" aria-live="polite"></section>
+</main>
+<script>
+const questions = [
+  { q: "Quelle planète est surnommée la planète rouge?", a: ["Vénus", "Mars", "Jupiter", "Mercure"], c: 1 },
+  { q: "Qui a été le premier humain à marcher sur la Lune?", a: ["Buzz Aldrin", "Youri Gagarine", "Neil Armstrong", "Alan Shepard"], c: 2 },
+  { q: "Quel satellite artificiel, lancé en 1957, a ouvert l’ère spatiale?", a: ["Spoutnik 1", "Explorer 1", "Hubble", "Apollo 11"], c: 0 },
+  { q: "Quel télescope spatial, lancé en 2021, observe l’infrarouge?", a: ["Hubble", "Kepler", "James Webb", "Chandra"], c: 2 },
+  { q: "Quelle agence spatiale a construit le Canadarm?", a: ["ESA", "Agence spatiale canadienne", "JAXA", "Roscosmos"], c: 1 }
+];
+const root = document.getElementById("quiz");
+let i = 0, score = 0, answered = false;
+
+function el(tag, props = {}, ...kids) {
+  const n = Object.assign(document.createElement(tag), props);
+  kids.forEach(k => n.append(k));
+  return n;
+}
+
+function render() {
+  root.replaceChildren();
+  const q = questions[i];
+  const prog = el("progress", { max: questions.length, value: i + 1 });
+  prog.setAttribute("aria-label", "Progression");
+  const list = el("ul");
+  q.a.forEach((txt, idx) => {
+    const b = el("button", { type: "button" }, txt);
+    b.addEventListener("click", () => choose(idx, list));
+    list.append(el("li", {}, b));
+  });
+  const h = el("h2", { tabIndex: -1 }, q.q);
+  root.append(
+    el("div", { className: "top" }, el("span", {}, `Question ${i + 1} sur ${questions.length}`), el("span", {}, `Score : ${score}`)),
+    prog, h, list, el("p", { id: "feedback" }), el("div", { id: "actions" })
+  );
+  answered = false;
+  h.focus();
+}
+
+function choose(idx, list) {
+  if (answered) return;
+  answered = true;
+  const q = questions[i];
+  const ok = idx === q.c;
+  if (ok) score++;
+  [...list.querySelectorAll("button")].forEach((b, n) => {
+    b.disabled = true;
+    if (n === q.c) { b.classList.add("correct"); b.prepend(el("span", { className: "badge" }, "✔ Bonne réponse : ")); }
+    else if (n === idx) { b.classList.add("wrong"); b.prepend(el("span", { className: "badge" }, "✘ Mauvaise réponse : ")); }
+  });
+  document.getElementById("feedback").textContent = ok ? "✔ Correct!" : `✘ Incorrect. La bonne réponse est : ${q.a[q.c]}.`;
+  const last = i === questions.length - 1;
+  const next = el("button", { type: "button", className: "next" }, last ? "Voir les résultats" : "Question suivante");
+  next.addEventListener("click", () => {
+    if (!answered) return;
+    answered = false;
+    if (last) results(); else { i++; render(); }
+  });
+  document.getElementById("actions").append(next);
+  next.focus();
+  document.querySelector(".top span:last-child").textContent = `Score : ${score}`;
+}
+
+function results() {
+  root.replaceChildren();
+  const h = el("h2", { tabIndex: -1 }, "Résultats");
+  root.append(h, el("p", { className: "big" }, `${score} / ${questions.length}`),
+    el("p", {}, score === questions.length ? "Parfait, mission accomplie!" : score >= 3 ? "Bravo, belle trajectoire!" : "Décollage réussi, continuez à explorer!"));
+  h.focus();
+}
+render();
+</script>
+</body>
+</html>
