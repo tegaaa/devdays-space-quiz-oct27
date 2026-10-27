@@ -168,7 +168,15 @@ function results() {
   const h = el("h2", { tabIndex: -1 }, "Résultats");
   root.append(h, el("p", { className: "big" }, `${score} / ${questions.length}`),
     el("p", {}, score === questions.length ? "Parfait, mission accomplie!" : score >= 3 ? "Bravo, belle trajectoire!" : "Décollage réussi, continuez à explorer!"));
+  const again = el("button", { type: "button", className: "next" }, "Rejouer");
+  again.addEventListener("click", restart);
+  root.append(el("div", {}, again));
   h.focus();
+}
+
+function restart() {
+  i = 0; score = 0; answered = false;
+  render();
 }
 render();
 </script>
